@@ -16,7 +16,7 @@
         body {
             background: var(--tg-theme-bg-color, #f0f2f5);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
-            padding: 16px;
+            padding: 0;
             min-height: 100vh;
         }
 
@@ -27,6 +27,41 @@
             border-radius: 20px;
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* Шапка с картинкой */
+        .header {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .header-image {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+            max-height: 200px;
+        }
+        .invite-text {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 12px 0 10px;
+            color: var(--tg-theme-text-color, #1e3c72);
+        }
+        .shop-button {
+            display: block;
+            background: var(--tg-theme-button-color, #ff6b35);
+            color: var(--tg-theme-button-text-color, white);
+            text-align: center;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            transition: opacity 0.2s;
+        }
+        .shop-button:active {
+            opacity: 0.8;
         }
 
         h1 {
@@ -126,7 +161,7 @@
 
         .table-wrapper {
             overflow-x: auto;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             margin-top: 16px;
         }
@@ -157,10 +192,11 @@
 
         @media (max-width: 500px) {
             body {
-                padding: 8px;
+                padding: 0;
             }
             .container {
                 padding: 16px;
+                border-radius: 0;
             }
             .stats-grid {
                 grid-template-columns: 1fr;
@@ -170,6 +206,13 @@
 </head>
 <body>
 <div class="container">
+    <!-- Шапка: картинка + приглашение + кнопка -->
+    <div class="header">
+        <img class="header-image" src="https://via.placeholder.com/600x200?text=Ваша+картинка" alt="Баннер">
+        <div class="invite-text">✨ ПОСМОТРЕТЬ МЕРКУРИАНСКУЮ ОДЕЖДУ ✨</div>
+        <a href="https://fun.ru/designer/seldon" class="shop-button" target="_blank">🛍️ Перейти к покупкам</a>
+    </div>
+
     <h1>📊 Поток Калькулятор</h1>
 
     <div class="card">
@@ -180,6 +223,8 @@
         <input type="number" id="bonusPercent" value="50" step="5">
         <label>Ежедневный % от остатка</label>
         <input type="number" id="dailyPercent" value="2" step="0.5">
+        <label>Дней просчёта (макс 1000)</label>
+        <input type="number" id="forecastDays" value="30" min="1" max="1000" step="10">
     </div>
 
     <div class="card">
@@ -216,10 +261,10 @@
         <div class="table-wrapper">
             <table id="dataTable">
                 <thead>
-                    <tr><th>День</th><th>Депозит</th><th>Выплата</th><th>Кэш</th><th>Депозит конец</th></tr>
+                    <tr><th>День</th><th>Депозит</th><th>Выплата</th><th>Кэш</th><th>Депозит конец</th>面包
                 </thead>
                 <tbody></tbody>
-            </table>
+             </table>
         </div>
         <div class="note">
             ⚡ При реинвесте кэш = 0. Гибрид: до порога — полный реинвест, после — указанная доля реинвеста.
@@ -228,15 +273,15 @@
 </div>
 
 <script>
-    // Инициализация Telegram Web App
     const tg = window.Telegram.WebApp;
-    tg.expand(); // растягиваем на весь экран
+    tg.expand();
     tg.ready();
 
-    // Элементы
+    // DOM элементы
     const startSumInput = document.getElementById('startSum');
     const bonusPercentInput = document.getElementById('bonusPercent');
     const dailyPercentInput = document.getElementById('dailyPercent');
+    const forecastDaysInput = document.getElementById('forecastDays');
     const strategySelect = document.getElementById('strategy');
     const hybridDiv = document.getElementById('hybridParams');
     const thresholdInput = document.getElementById('thresholdPay');
@@ -281,6 +326,10 @@
         let bonus = parseFloat(bonusPercentInput.value) / 100;
         let dailyRate = parseFloat(dailyPercentInput.value) / 100;
         let strategy = strategySelect.value;
+        let maxDays = parseInt(forecastDaysInput.value);
+        if (isNaN(maxDays) || maxDays < 1) maxDays = 30;
+        if (maxDays > 1000) maxDays = 1000;
+
         if (isNaN(X) || X <= 0) X = 10000;
         let startDeposit = X * (1 + bonus);
 
@@ -296,9 +345,9 @@
 
         let days = [], depositStart = [], payout = [], cashAcc = [], depositEnd = [];
         let curDeposit = startDeposit, curCash = 0, day = 1;
-        const MAX_DAYS = 500;
+        const MAX_TOTAL_DAYS = 2000;
 
-        while (day <= MAX_DAYS && curDeposit > 0.01) {
+        while (day <= maxDays && day <= MAX_TOTAL_DAYS && curDeposit > 0.001) {
             let pay = curDeposit * dailyRate;
             let newDepositAfterPayout = curDeposit - pay;
             let addedCash = 0, finalDeposit = 0;
@@ -330,12 +379,12 @@
 
             curDeposit = finalDeposit;
             day++;
-            if (finalDeposit < 0.01) break;
+            if (finalDeposit < 0.001 && (strategy !== 'noReinvest' || curCash < 0.001)) break;
         }
 
-        let limit = Math.min(30, days.length);
+        let displayLimit = Math.min(maxDays, days.length);
         tableBody.innerHTML = '';
-        for (let i = 0; i < limit; i++) {
+        for (let i = 0; i < displayLimit; i++) {
             let row = tableBody.insertRow();
             row.insertCell(0).innerText = days[i];
             row.insertCell(1).innerText = depositStart[i].toFixed(2);
@@ -348,12 +397,13 @@
         let lastDeposit = depositEnd.length ? depositEnd[depositEnd.length-1] : 0;
         let totalPayout = payout.reduce((a,b)=>a+b,0);
         let maxPayout = Math.max(...payout, 0);
+        let dayMaxPayout = payout.indexOf(maxPayout) + 1;
 
         statsPanel.innerHTML = `
             <div class="stat-card"><div class="stat-label">Депозит</div><div class="stat-value">${lastDeposit.toFixed(2)} ₽</div></div>
             <div class="stat-card"><div class="stat-label">Кэш на руках</div><div class="stat-value">${lastCash.toFixed(2)} ₽</div></div>
             <div class="stat-card"><div class="stat-label">Всего выплачено</div><div class="stat-value">${totalPayout.toFixed(2)} ₽</div></div>
-            <div class="stat-card"><div class="stat-label">Макс. выплата</div><div class="stat-value">${maxPayout.toFixed(2)} ₽</div></div>
+            <div class="stat-card"><div class="stat-label">Макс. выплата</div><div class="stat-value">${maxPayout.toFixed(2)} ₽ (день ${dayMaxPayout})</div></div>
         `;
 
         if (chart) chart.destroy();
