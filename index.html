@@ -7,19 +7,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: var(--tg-theme-bg-color, #f0f2f5);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
             padding: 0;
             min-height: 100vh;
         }
-
         .container {
             max-width: 600px;
             margin: 0 auto;
@@ -28,8 +22,6 @@
             padding: 20px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-
-        /* Шапка с картинкой */
         .header {
             width: 100%;
             margin-bottom: 20px;
@@ -60,30 +52,24 @@
             margin-bottom: 20px;
             transition: opacity 0.2s;
         }
-        .shop-button:active {
-            opacity: 0.8;
-        }
-
+        .shop-button:active { opacity: 0.8; }
         h1 {
             font-size: 1.6rem;
             color: var(--tg-theme-text-color, #1e3c72);
             margin-bottom: 20px;
             text-align: center;
         }
-
         .card {
             background: var(--tg-theme-bg-color, #f9fafc);
             border-radius: 16px;
             padding: 16px;
             margin-bottom: 16px;
         }
-
         .card h3 {
             font-size: 1.1rem;
             margin-bottom: 12px;
             color: var(--tg-theme-text-color, #0a2b44);
         }
-
         label {
             display: block;
             margin: 12px 0 4px;
@@ -91,7 +77,6 @@
             font-weight: 500;
             color: var(--tg-theme-hint-color, #5a6874);
         }
-
         input, select {
             width: 100%;
             padding: 12px;
@@ -101,7 +86,6 @@
             background: var(--tg-theme-bg-color, white);
             color: var(--tg-theme-text-color, #000);
         }
-
         button {
             background: var(--tg-theme-button-color, #1e6f3f);
             color: var(--tg-theme-button-text-color, white);
@@ -115,11 +99,7 @@
             margin-top: 16px;
             transition: opacity 0.2s;
         }
-
-        button:active {
-            opacity: 0.8;
-        }
-
+        button:active { opacity: 0.8; }
         .result-area {
             background: var(--tg-theme-bg-color, #e9f0f5);
             border-radius: 16px;
@@ -127,14 +107,12 @@
             margin-top: 16px;
             text-align: center;
         }
-
         .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
             margin-bottom: 20px;
         }
-
         .stat-card {
             background: var(--tg-theme-bg-color, white);
             border-radius: 16px;
@@ -142,75 +120,27 @@
             text-align: center;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: var(--tg-theme-hint-color, #5a6874);
-        }
-
-        .stat-value {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: var(--tg-theme-text-color, #1e466e);
-        }
-
-        .chart-container {
-            height: 250px;
-            margin: 20px 0;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            max-height: 400px;
-            overflow-y: auto;
-            margin-top: 16px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.75rem;
-        }
-
-        th, td {
-            border-bottom: 1px solid var(--tg-theme-hint-color, #ddd);
-            padding: 8px 6px;
-            text-align: right;
-        }
-
-        th:first-child, td:first-child {
-            text-align: left;
-        }
-
-        .note {
-            font-size: 0.7rem;
-            color: var(--tg-theme-hint-color, #5f6c7a);
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 1px solid var(--tg-theme-hint-color, #ddd);
-        }
-
+        .stat-label { font-size: 0.75rem; color: var(--tg-theme-hint-color, #5a6874); }
+        .stat-value { font-size: 1.3rem; font-weight: bold; color: var(--tg-theme-text-color, #1e466e); }
+        .chart-container { height: 250px; margin: 20px 0; }
+        .table-wrapper { overflow-x: auto; max-height: 400px; overflow-y: auto; margin-top: 16px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+        th, td { border-bottom: 1px solid var(--tg-theme-hint-color, #ddd); padding: 8px 6px; text-align: right; }
+        th:first-child, td:first-child { text-align: left; }
+        .note { font-size: 0.7rem; color: var(--tg-theme-hint-color, #5f6c7a); margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--tg-theme-hint-color, #ddd); }
         @media (max-width: 500px) {
-            body {
-                padding: 0;
-            }
-            .container {
-                padding: 16px;
-                border-radius: 0;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+            body { padding: 0; }
+            .container { padding: 16px; border-radius: 0; }
+            .stats-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- Шапка: картинка + приглашение + кнопка -->
     <div class="header">
         <img class="header-image" src="https://deminoval.github.io/seldonsflow/p1.jpg" alt="Баннер">
-        <div class="invite-text">✨ ПОСМОТРЕТЬ МЕРКУРИАНСКУЮ ОДЕЖДУ ✨</div>
-        <a href="https://fun.ru/designer/seldon" class="shop-button" target="_blank">🛍️ Перейти к покупкам</a>
+        <div class="invite-text">✨ ПРИГЛАШЕНИЕ ПЕРЕЙТИ В МАГАЗИН ОДЕЖДЫ ✨</div>
+        <a href="https://fun.ru/designer/seldon" class="shop-button" target="_blank">🛍️ Перейти в магазин</a>
     </div>
 
     <h1>📊 Поток Калькулятор</h1>
@@ -232,14 +162,14 @@
         <label>Режим</label>
         <select id="strategy">
             <option value="noReinvest">Без реинвеста (забираю выплаты)</option>
-            <option value="fullReinvest">Полный реинвест (всё обратно)</option>
-            <option value="hybrid">Гибрид (сначала реинвест, потом вывод)</option>
+            <option value="fullReinvest">Полный реинвест (копим до 2000 → всё в дело)</option>
+            <option value="hybrid">Гибрид (доля реинвеста, мин 2000)</option>
         </select>
         <div id="hybridParams" style="display: none;">
-            <label>Порог выплаты (руб/день)</label>
-            <input type="number" id="thresholdPay" value="4000" step="500">
-            <label>Доля реинвеста (0..1)</label>
+            <label>Доля реинвеста от кэша (0..1)</label>
             <input type="number" id="reinvestShare" value="0.5" step="0.05">
+            <label>Порог выплаты для перехода в гибрид (руб/день)</label>
+            <input type="number" id="thresholdPay" value="4000" step="500">
         </div>
     </div>
 
@@ -255,19 +185,17 @@
 
     <div id="results" style="display: none;">
         <div class="stats-grid" id="statsPanel"></div>
-        <div class="chart-container">
-            <canvas id="mainChart"></canvas>
-        </div>
+        <div class="chart-container"><canvas id="mainChart"></canvas></div>
         <div class="table-wrapper">
             <table id="dataTable">
-                <thead>
-                    <tr><th>День</th><th>Депозит</th><th>Выплата</th><th>Кэш</th><th>Депозит конец</th>面包
-                </thead>
+                <thead><tr><th>День</th><th>Депозит</th><th>Выплата</th><th>Кэш (до реинвеста)</th><th>Сумма реинвеста</th><th>Кэш после</th> </thead>
                 <tbody></tbody>
              </table>
         </div>
         <div class="note">
-            ⚡ При реинвесте кэш = 0. Гибрид: до порога — полный реинвест, после — указанная доля реинвеста.
+            ⚡ Минимальная сумма реинвеста = 2000 руб.<br>
+            • Полный реинвест: копим выплаты, пока кэш ≥ 2000 → реинвестируем всё.<br>
+            • Гибрид: реинвестируем заданную долю от кэша (если она ≥ 2000), остаток остаётся в кэше.
         </div>
     </div>
 </div>
@@ -277,15 +205,14 @@
     tg.expand();
     tg.ready();
 
-    // DOM элементы
     const startSumInput = document.getElementById('startSum');
     const bonusPercentInput = document.getElementById('bonusPercent');
     const dailyPercentInput = document.getElementById('dailyPercent');
     const forecastDaysInput = document.getElementById('forecastDays');
     const strategySelect = document.getElementById('strategy');
     const hybridDiv = document.getElementById('hybridParams');
-    const thresholdInput = document.getElementById('thresholdPay');
     const reinvestShareInput = document.getElementById('reinvestShare');
+    const thresholdInput = document.getElementById('thresholdPay');
     const targetDailyInput = document.getElementById('targetDaily');
     const calcAddBtn = document.getElementById('calcAddBtn');
     const addResultDiv = document.getElementById('addResult');
@@ -329,54 +256,72 @@
         let maxDays = parseInt(forecastDaysInput.value);
         if (isNaN(maxDays) || maxDays < 1) maxDays = 30;
         if (maxDays > 1000) maxDays = 1000;
-
         if (isNaN(X) || X <= 0) X = 10000;
         let startDeposit = X * (1 + bonus);
 
-        let threshold = 0, reinvestShare = 1;
-        let hybridModeActive = false;
+        let reinvestShare = 1, threshold = 0;
+        let hybridActive = false;
         if (strategy === 'hybrid') {
-            threshold = parseFloat(thresholdInput.value);
             reinvestShare = parseFloat(reinvestShareInput.value);
-            if (isNaN(threshold)) threshold = 4000;
             if (isNaN(reinvestShare)) reinvestShare = 0.5;
             reinvestShare = Math.min(1, Math.max(0, reinvestShare));
+            threshold = parseFloat(thresholdInput.value);
+            if (isNaN(threshold)) threshold = 4000;
         }
 
-        let days = [], depositStart = [], payout = [], cashAcc = [], depositEnd = [];
-        let curDeposit = startDeposit, curCash = 0, day = 1;
-        const MAX_TOTAL_DAYS = 2000;
+        let days = [], depositStart = [], payout = [], cashBefore = [], reinvestAmount = [], cashAfter = [];
+        let curDeposit = startDeposit;
+        let curCash = 0;
+        let day = 1;
+        const MIN_REINVEST = 2000;
 
-        while (day <= maxDays && day <= MAX_TOTAL_DAYS && curDeposit > 0.001) {
+        while (day <= maxDays && curDeposit > 0.001) {
             let pay = curDeposit * dailyRate;
             let newDepositAfterPayout = curDeposit - pay;
-            let addedCash = 0, finalDeposit = 0;
+            
+            curCash += pay;
+            let reinvest = 0;
+            let finalDeposit = newDepositAfterPayout;
 
             if (strategy === 'noReinvest') {
-                addedCash = pay;
-                curCash += pay;
+                reinvest = 0;
                 finalDeposit = newDepositAfterPayout;
-            } else if (strategy === 'fullReinvest') {
-                let reinvest = pay;
-                let bonusAdd = reinvest * (1 + bonus);
-                finalDeposit = newDepositAfterPayout + bonusAdd;
-            } else if (strategy === 'hybrid') {
-                if (!hybridModeActive && pay >= threshold) hybridModeActive = true;
-                let r = hybridModeActive ? reinvestShare : 1;
-                let reinvestPart = pay * r;
-                let cashPart = pay * (1 - r);
-                addedCash = cashPart;
-                curCash += cashPart;
-                let bonusAdd = reinvestPart * (1 + bonus);
-                finalDeposit = newDepositAfterPayout + bonusAdd;
+            }
+            else if (strategy === 'fullReinvest') {
+                if (curCash >= MIN_REINVEST) {
+                    reinvest = curCash;
+                    let bonusAdd = reinvest * (1 + bonus);
+                    finalDeposit = newDepositAfterPayout + bonusAdd;
+                    curCash = 0;
+                } else {
+                    reinvest = 0;
+                    finalDeposit = newDepositAfterPayout;
+                }
+            }
+            else if (strategy === 'hybrid') {
+                if (!hybridActive && pay >= threshold) {
+                    hybridActive = true;
+                }
+                let currentReinvestShare = hybridActive ? reinvestShare : 1;
+                let desiredReinvest = curCash * currentReinvestShare;
+                if (desiredReinvest >= MIN_REINVEST) {
+                    reinvest = desiredReinvest;
+                    let bonusAdd = reinvest * (1 + bonus);
+                    finalDeposit = newDepositAfterPayout + bonusAdd;
+                    curCash = curCash - reinvest;
+                } else {
+                    reinvest = 0;
+                    finalDeposit = newDepositAfterPayout;
+                }
             }
 
             days.push(day);
             depositStart.push(curDeposit);
             payout.push(pay);
-            cashAcc.push(curCash);
-            depositEnd.push(finalDeposit);
-
+            cashBefore.push(curCash + (reinvest > 0 ? reinvest : 0));
+            reinvestAmount.push(reinvest);
+            cashAfter.push(curCash);
+            
             curDeposit = finalDeposit;
             day++;
             if (finalDeposit < 0.001 && (strategy !== 'noReinvest' || curCash < 0.001)) break;
@@ -389,12 +334,13 @@
             row.insertCell(0).innerText = days[i];
             row.insertCell(1).innerText = depositStart[i].toFixed(2);
             row.insertCell(2).innerText = payout[i].toFixed(2);
-            row.insertCell(3).innerText = cashAcc[i].toFixed(2);
-            row.insertCell(4).innerText = depositEnd[i].toFixed(2);
+            row.insertCell(3).innerText = cashBefore[i].toFixed(2);
+            row.insertCell(4).innerText = reinvestAmount[i].toFixed(2);
+            row.insertCell(5).innerText = cashAfter[i].toFixed(2);
         }
 
-        let lastCash = cashAcc.length ? cashAcc[cashAcc.length-1] : 0;
-        let lastDeposit = depositEnd.length ? depositEnd[depositEnd.length-1] : 0;
+        let lastCash = cashAfter.length ? cashAfter[cashAfter.length-1] : 0;
+        let lastDeposit = depositStart.length ? depositStart[depositStart.length-1] : 0;
         let totalPayout = payout.reduce((a,b)=>a+b,0);
         let maxPayout = Math.max(...payout, 0);
         let dayMaxPayout = payout.indexOf(maxPayout) + 1;
@@ -414,7 +360,7 @@
                 labels: days,
                 datasets: [
                     { label: 'Депозит', data: depositStart, borderColor: '#2c7da0', tension: 0.2, pointRadius: 0 },
-                    { label: 'Накопленный кэш', data: cashAcc, borderColor: '#f4a261', tension: 0.2, pointRadius: 0, borderDash: [5,5] }
+                    { label: 'Кэш на руках', data: cashAfter, borderColor: '#f4a261', tension: 0.2, pointRadius: 0, borderDash: [5,5] }
                 ]
             },
             options: {
