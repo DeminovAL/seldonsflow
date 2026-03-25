@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>Поток Калькулятор</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--tg-theme-bg-color, #f0f2f5);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--tg-theme-secondary-bg-color, white);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            color: var(--tg-theme-text-color, #1e3c72);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .card {
+            background: var(--tg-theme-bg-color, #f9fafc);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--tg-theme-text-color, #0a2b44);
+        }
+
+        label {
+            display: block;
+            margin: 12px 0 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--tg-theme-hint-color, #5a6874);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--tg-theme-hint-color, #ccc);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: var(--tg-theme-bg-color, white);
+            color: var(--tg-theme-text-color, #000);
+        }
+
+        button {
+            background: var(--tg-theme-button-color, #1e6f3f);
+            color: var(--tg-theme-button-text-color, white);
+            border: none;
+            padding: 14px 20px;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 16px;
+            transition: opacity 0.2s;
+        }
+
+        button:active {
+            opacity: 0.8;
+        }
+
+        .result-area {
+            background: var(--tg-theme-bg-color, #e9f0f5);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--tg-theme-bg-color, white);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--tg-theme-hint-color, #5a6874);
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--tg-theme-text-color, #1e466e);
+        }
+
+        .chart-container {
+            height: 250px;
+            margin: 20px 0;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--tg-theme-hint-color, #ddd);
+            padding: 8px 6px;
+            text-align: right;
+        }
+
+        th:first-child, td:first-child {
+            text-align: left;
+        }
+
+        .note {
+            font-size: 0.7rem;
+            color: var(--tg-theme-hint-color, #5f6c7a);
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--tg-theme-hint-color, #ddd);
+        }
+
+        @media (max-width: 500px) {
+            body {
+                padding: 8px;
+            }
+            .container {
+                padding: 16px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📊 Поток Калькулятор</h1>
+
+    <div class="card">
+        <h3>💰 Параметры</h3>
+        <label>Начальная сумма (руб)</label>
+        <input type="number" id="startSum" value="67000" step="1000">
+        <label>Бонус при внесении (%)</label>
+        <input type="number" id="bonusPercent" value="50" step="5">
+        <label>Ежедневный % от остатка</label>
+        <input type="number" id="dailyPercent" value="2" step="0.5">
+    </div>
+
+    <div class="card">
+        <h3>⚙️ Стратегия</h3>
+        <label>Режим</label>
+        <select id="strategy">
+            <option value="noReinvest">Без реинвеста (забираю выплаты)</option>
+            <option value="fullReinvest">Полный реинвест (всё обратно)</option>
+            <option value="hybrid">Гибрид (сначала реинвест, потом вывод)</option>
+        </select>
+        <div id="hybridParams" style="display: none;">
+            <label>Порог выплаты (руб/день)</label>
+            <input type="number" id="thresholdPay" value="4000" step="500">
+            <label>Доля реинвеста (0..1)</label>
+            <input type="number" id="reinvestShare" value="0.5" step="0.05">
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>🎯 Целевая выплата</h3>
+        <label>Желаемая выплата в день (руб)</label>
+        <input type="number" id="targetDaily" value="2000" step="100">
+        <button id="calcAddBtn">Сколько добавить?</button>
+        <div id="addResult" class="result-area" style="margin-top: 12px;">—</div>
+    </div>
+
+    <button id="runCalc">▶ Рассчитать</button>
+
+    <div id="results" style="display: none;">
+        <div class="stats-grid" id="statsPanel"></div>
+        <div class="chart-container">
+            <canvas id="mainChart"></canvas>
+        </div>
+        <div class="table-wrapper">
+            <table id="dataTable">
+                <thead>
+                    <tr><th>День</th><th>Депозит</th><th>Выплата</th><th>Кэш</th><th>Депозит конец</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="note">
+            ⚡ При реинвесте кэш = 0. Гибрид: до порога — полный реинвест, после — указанная доля реинвеста.
+        </div>
+    </div>
+</div>
+
+<script>
+    // Инициализация Telegram Web App
+    const tg = window.Telegram.WebApp;
+    tg.expand(); // растягиваем на весь экран
+    tg.ready();
+
+    // Элементы
+    const startSumInput = document.getElementById('startSum');
+    const bonusPercentInput = document.getElementById('bonusPercent');
+    const dailyPercentInput = document.getElementById('dailyPercent');
+    const strategySelect = document.getElementById('strategy');
+    const hybridDiv = document.getElementById('hybridParams');
+    const thresholdInput = document.getElementById('thresholdPay');
+    const reinvestShareInput = document.getElementById('reinvestShare');
+    const targetDailyInput = document.getElementById('targetDaily');
+    const calcAddBtn = document.getElementById('calcAddBtn');
+    const addResultDiv = document.getElementById('addResult');
+    const runBtn = document.getElementById('runCalc');
+    const resultsDiv = document.getElementById('results');
+    const statsPanel = document.getElementById('statsPanel');
+    const tableBody = document.querySelector('#dataTable tbody');
+    let chart = null;
+
+    strategySelect.addEventListener('change', () => {
+        hybridDiv.style.display = strategySelect.value === 'hybrid' ? 'block' : 'none';
+    });
+    hybridDiv.style.display = strategySelect.value === 'hybrid' ? 'block' : 'none';
+
+    function calcHowMuchToAdd() {
+        let targetPay = parseFloat(targetDailyInput.value);
+        if (isNaN(targetPay) || targetPay <= 0) {
+            addResultDiv.innerText = '❌ Введите корректную цель';
+            return;
+        }
+        let dailyRate = parseFloat(dailyPercentInput.value) / 100;
+        let neededDeposit = targetPay / dailyRate;
+        let startX = parseFloat(startSumInput.value);
+        let bonus = parseFloat(bonusPercentInput.value) / 100;
+        let initDeposit = startX * (1 + bonus);
+        let delta = neededDeposit - initDeposit;
+        if (delta <= 0) {
+            addResultDiv.innerHTML = `✅ Уже достаточно! Текущая выплата: ${(initDeposit * dailyRate).toFixed(2)} руб/день`;
+        } else {
+            let toAdd = delta / (1 + bonus);
+            addResultDiv.innerHTML = `📌 Нужно внести <strong>${toAdd.toFixed(2)} руб</strong><br>(после бонуса +${bonusPercentInput.value}% станет ${delta.toFixed(2)} руб на депозите)`;
+        }
+    }
+    calcAddBtn.addEventListener('click', calcHowMuchToAdd);
+
+    function runCalculation() {
+        let X = parseFloat(startSumInput.value);
+        let bonus = parseFloat(bonusPercentInput.value) / 100;
+        let dailyRate = parseFloat(dailyPercentInput.value) / 100;
+        let strategy = strategySelect.value;
+        if (isNaN(X) || X <= 0) X = 10000;
+        let startDeposit = X * (1 + bonus);
+
+        let threshold = 0, reinvestShare = 1;
+        let hybridModeActive = false;
+        if (strategy === 'hybrid') {
+            threshold = parseFloat(thresholdInput.value);
+            reinvestShare = parseFloat(reinvestShareInput.value);
+            if (isNaN(threshold)) threshold = 4000;
+            if (isNaN(reinvestShare)) reinvestShare = 0.5;
+            reinvestShare = Math.min(1, Math.max(0, reinvestShare));
+        }
+
+        let days = [], depositStart = [], payout = [], cashAcc = [], depositEnd = [];
+        let curDeposit = startDeposit, curCash = 0, day = 1;
+        const MAX_DAYS = 500;
+
+        while (day <= MAX_DAYS && curDeposit > 0.01) {
+            let pay = curDeposit * dailyRate;
+            let newDepositAfterPayout = curDeposit - pay;
+            let addedCash = 0, finalDeposit = 0;
+
+            if (strategy === 'noReinvest') {
+                addedCash = pay;
+                curCash += pay;
+                finalDeposit = newDepositAfterPayout;
+            } else if (strategy === 'fullReinvest') {
+                let reinvest = pay;
+                let bonusAdd = reinvest * (1 + bonus);
+                finalDeposit = newDepositAfterPayout + bonusAdd;
+            } else if (strategy === 'hybrid') {
+                if (!hybridModeActive && pay >= threshold) hybridModeActive = true;
+                let r = hybridModeActive ? reinvestShare : 1;
+                let reinvestPart = pay * r;
+                let cashPart = pay * (1 - r);
+                addedCash = cashPart;
+                curCash += cashPart;
+                let bonusAdd = reinvestPart * (1 + bonus);
+                finalDeposit = newDepositAfterPayout + bonusAdd;
+            }
+
+            days.push(day);
+            depositStart.push(curDeposit);
+            payout.push(pay);
+            cashAcc.push(curCash);
+            depositEnd.push(finalDeposit);
+
+            curDeposit = finalDeposit;
+            day++;
+            if (finalDeposit < 0.01) break;
+        }
+
+        let limit = Math.min(30, days.length);
+        tableBody.innerHTML = '';
+        for (let i = 0; i < limit; i++) {
+            let row = tableBody.insertRow();
+            row.insertCell(0).innerText = days[i];
+            row.insertCell(1).innerText = depositStart[i].toFixed(2);
+            row.insertCell(2).innerText = payout[i].toFixed(2);
+            row.insertCell(3).innerText = cashAcc[i].toFixed(2);
+            row.insertCell(4).innerText = depositEnd[i].toFixed(2);
+        }
+
+        let lastCash = cashAcc.length ? cashAcc[cashAcc.length-1] : 0;
+        let lastDeposit = depositEnd.length ? depositEnd[depositEnd.length-1] : 0;
+        let totalPayout = payout.reduce((a,b)=>a+b,0);
+        let maxPayout = Math.max(...payout, 0);
+
+        statsPanel.innerHTML = `
+            <div class="stat-card"><div class="stat-label">Депозит</div><div class="stat-value">${lastDeposit.toFixed(2)} ₽</div></div>
+            <div class="stat-card"><div class="stat-label">Кэш на руках</div><div class="stat-value">${lastCash.toFixed(2)} ₽</div></div>
+            <div class="stat-card"><div class="stat-label">Всего выплачено</div><div class="stat-value">${totalPayout.toFixed(2)} ₽</div></div>
+            <div class="stat-card"><div class="stat-label">Макс. выплата</div><div class="stat-value">${maxPayout.toFixed(2)} ₽</div></div>
+        `;
+
+        if (chart) chart.destroy();
+        const ctx = document.getElementById('mainChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: days,
+                datasets: [
+                    { label: 'Депозит', data: depositStart, borderColor: '#2c7da0', tension: 0.2, pointRadius: 0 },
+                    { label: 'Накопленный кэш', data: cashAcc, borderColor: '#f4a261', tension: 0.2, pointRadius: 0, borderDash: [5,5] }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { tooltip: { mode: 'index', intersect: false } }
+            }
+        });
+
+        resultsDiv.style.display = 'block';
+    }
+
+    runBtn.addEventListener('click', runCalculation);
+    window.addEventListener('load', () => {
+        runCalculation();
+        calcHowMuchToAdd();
+    });
+</script>
+</body>
+</html>
